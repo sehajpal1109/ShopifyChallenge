@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+    <!-- table style -->
+    <style>
+        table, th, td {
+            border:1px solid black;
+        }
+    </style>
+  <head>
+    <meta charset="utf-8">
+    <title>Request JSON Test</title>
+  </head>
+  <body>
+    
+    <h1>Inventory Tracking System</h1>
+
+    <a href="#" id="get-data"><button>Display Inventory</button></a>
+    <div id="show-data"></div>
+    <div id="show-inventory"></div>
+    <div id="add-inventory"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <!-- Create and Delete Buttons -->
+    <!--<button onclick="createfunc()">Create row</button>
+    <button onclick="deletefunc()">Delete row</button>-->
+
+  <script> 
+    
+    $(document).ready(() => {
+    const $showData = $('#show-data');
+    const $raw = $('pre');
+
+  $('#get-data').on('click', (e) => {
+    e.preventDefault();
+
+    $showData.text('Loading the JSON file.');
+
+    $.getJSON('/account/list', (data) => {
+        const markup = data.accounts
+        .map(item => `<li>${item.username}: ${item.email}</li>`)
+        .join('');
+
+        // making a table
+
+        const myaccounts = data.accounts
+        var tbl=$("<table/>").attr("id", "mytable");
+        $("#show-inventory").append(tbl);
+        $("#mytable").append('<th>ID</th>');
+        $("#mytable").append('<th>NAME</th>');
+        $("#mytable").append('<th>QUANTITY</th>');
+        $("#mytable").append('<th>EDIT</th>');
+        $("#mytable").append('<th>DELETE</th>');
+        for(var i=0;i<myaccounts.length;i++) {
+            var tr="<tr>";
+            var td1="<td>"+myaccounts[i]["id"]+"</td>";
+            var td2="<td>"+myaccounts[i]["name"]+"</td>";
+            var td3="<td>"+myaccounts[i]["quantity"]+"</td>";
+            var td4= "<td>"+"<button class='editBtn' id=" +i + ">Edit"+"</button>"+"</td>";
+            var td5= "<td>"+"<button class='deleteBtn' id=" +i + ">Delete"+"</button>"+"</td>";
+            var hidden= "<input id=myInputHidden-"+i +" name='myInputName' type='hidden' value="+myaccounts[i]+" />";
+            var editqty= "<td><input id=editQty-"+i +" name='editQty' type='text' value="+myaccounts[i]["quantity"]+" /></td></tr>";
+            $("#mytable").append(tr+td1+td2+td3+td4+td5+hidden+editqty); 
+        }
+
+        var tbl2=$("<table/>").attr("id", "mytable2");
+        $("#add-inventory").append(tbl2);
+        $("#mytable2").append('<th>ID</th>');
+        $("#mytable2").append('<th>NAME</th>');
+        $("#mytable2").append('<th>QUANTITY</th>');
+        $("#mytable2").append('<th>CREATE</th>');
+
+        // Delete a Row
+        $(".deleteBtn").click( function(e) {
+            window.alert("Hi, this is delete >" + e.target.id);
+            //var editQtyElementID = "editQty"+e.target.id;
+            window.alert("Qty >"+$(editQtyElementID).val());
+            $.ajax({
+                url: '/account/delete/'+e.target.id,
+                type: 'DELETE',
+                success: function(result) {
+                    window.alert("Done");
+                }
+            });
+
+        }
+        );
+
+        $(".editBtn").click( function(e) {
+            //window.alert("Hi, this is delete >" + e.target.id);
+            var editQtyElementID = "#editQty-"+e.target.id;
+            window.alert("Qty >"+$(editQtyElementID).val());
+            data = {"id":e.target.id, "qty":$(editQtyElementID).val()};
+
+            $.ajax({
+                type: 'POST',
+                url: '/account/'+e.target.id+"/"+$(editQtyElementID).val(),
+                contentType: 'application/json',
+                data: JSON.stringify(data), // access in body
+                }).done(function () {
+                    console.log('SUCCESS');
+                }).fail(function (msg) {
+                    console.log('FAIL');
+                }).always(function (msg) {
+                    console.log('ALWAYS');
+                });
+
+        }
+        );
+
+        // Create a Row
+        $("CreateButton").click( function() {
+            var table = data.accounts.getElementById("mytable");
+            var row = table.insertRow(0);
+            var cell1 = row.insertCell(0);
+            var cell2 = row.insertCell(1);
+            cell1.innerHTML = "New Item 1";
+            cell2.innerHTML = "New Item 2"
+        });
+
+        const mydiv = $('<div />').html(markup);
+        const list = $('<ul />').html(markup);
+
+
+        $showData.html(tbl);
+
+        $raw.text(JSON.stringify(data, undefined, 2));
+    });
+  });
+});
+
+</script>
+
+</body>
+
+</html>
